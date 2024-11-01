@@ -29,29 +29,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain)
-            throws ServletException, IOException {
+        HttpServletResponse response,
+        FilterChain filterChain)
+        throws ServletException, IOException {
         try {
             String jwt = getJwtFromRequest(request);
 
-            if (StringUtils.hasText(jwt)) {
-                // JWT 검증
-                boolean isValid = jwtProvider.validateEncryptedToken(jwt, "external_service_1"); // 서비스 식별자 변경 필요
+            if (StringUtils.hasText(jwt) && jwtProvider.validateEncryptedToken(jwt, "external_service_1")) { // "external_service_1"을 실제 환경에 맞게 수정
+                String username = jwtProvider.getUsernameFromJWT(jwt);
+                UserDetails userDetails = userService.loadUserByUsername(username);
 
-                if (isValid) {
-                    // 토큰에서 사용자 정보 추출
-                    String username = jwtProvider.getUsernameFromJWT(jwt);
-                    String profileId = jwtProvider.getProfileIdFromJWT(jwt);
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                    userDetails, null, userDetails.getAuthorities()
+                );
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                    UserDetails userDetails = userService.loadUserByUsername(username);
-                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                            userDetails, null, userDetails.getAuthorities()
-                    );
-                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
-                }
+                SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         } catch (Exception ex) {
             logger.error("Could not set user authentication in security context", ex);

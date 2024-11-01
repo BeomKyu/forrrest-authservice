@@ -1,7 +1,7 @@
 spring:
   profiles: dev
   datasource:
-    url: jdbc:mysql://localhost:3306/auth_db_dev?useSSL=false&serverTimezone=UTC
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/auth_db?useSSL=false&serverTimezone=UTC
     username: root
     password: devpassword
 

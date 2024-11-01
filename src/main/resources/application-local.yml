@@ -1,9 +1,16 @@
 spring:
   profiles: local
   datasource:
-    url: jdbc:mysql://localhost:3306/auth_db_local?useSSL=false&serverTimezone=UTC
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/auth_db?useSSL=false&serverTimezone=UTC
     username: root
     password: localpassword
+  jpa:
+    hibernate:
+      ddl-auto: create
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
 
 server:
   ssl:

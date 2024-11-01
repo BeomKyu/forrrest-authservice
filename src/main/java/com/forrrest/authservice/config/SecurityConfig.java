@@ -18,33 +18,35 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 public class SecurityConfig {
 
-    private final JwtProvider jwtProvider;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final UserService userService;
 
-    public SecurityConfig(JwtProvider jwtProvider, UserService userService) {
-        this.jwtProvider = jwtProvider;
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, UserService userService) {
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.userService = userService;
-    }
-
-    @Bean
-    public JwtAuthenticationFilter jwtAuthenticationFilter() {
-        return new JwtAuthenticationFilter(jwtProvider, userService);
     }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .csrf().disable() // CSRF 보호 비활성화 (API 사용 시 일반적)
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-                .authorizeHttpRequests()
+            // CSRF 비활성화
+            .csrf(csrf -> csrf.disable())
+            // 세션 비활성화 (STATELESS)
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            // 권한 설정
+            .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/auth/login", "/auth/register").permitAll()
-                .anyRequest().authenticated();
+                .anyRequest().authenticated()
+            )
+        // CORS 설정 제거
+        ;
 
-        http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+        // JWT 필터 추가
+        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
+
 
     @Bean
     public PasswordEncoder passwordEncoder() {
