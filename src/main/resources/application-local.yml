@@ -1,0 +1,10 @@
+spring:
+  profiles: local
+  datasource:
+    url: jdbc:mysql://localhost:3306/auth_db_local?useSSL=false&serverTimezone=UTC
+    username: root
+    password: localpassword
+
+server:
+  ssl:
+    enabled: false

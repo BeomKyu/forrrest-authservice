@@ -1,0 +1,14 @@
+spring:
+  profiles: deploy
+  datasource:
+    url: jdbc:mysql://localhost:3306/auth_db?useSSL=false&serverTimezone=UTC
+    username: root
+    password: deploypassword
+
+server:
+  ssl:
+    enabled: true
+    key-store: classpath:keystore/authservice.jks
+    key-store-password: deploypassword
+    key-store-type: JKS
+    key-alias: authservice

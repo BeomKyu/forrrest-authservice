@@ -1,0 +1,14 @@
+spring:
+  profiles: stag
+  datasource:
+    url: jdbc:mysql://localhost:3306/auth_db_stag?useSSL=false&serverTimezone=UTC
+    username: root
+    password: stagpassword
+
+server:
+  ssl:
+    enabled: true
+    key-store: classpath:keystore/authservice_stag.jks
+    key-store-password: stagpassword
+    key-store-type: JKS
+    key-alias: authservice_stag
