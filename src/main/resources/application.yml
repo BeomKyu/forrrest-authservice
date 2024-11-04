@@ -1,24 +1,31 @@
 spring:
-  config:
-    activate:
-      on-profile: local
-  datasource:
-    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/auth_db?useSSL=false&serverTimezone=UTC
-    username: root
-    password: yourpassword
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
+  profiles:
+    active: local
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    groups-order: DESC
+    operationsSorter: method
+    disable-swagger-default-url: true
+    display-request-duration: true
+  api-docs:
+    path: /v3/api-docs
+  show-actuator: true
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
 
 jwt:
-  expiration: 1800000 # 30 minutes in milliseconds
-  issuer: your-auth-service
+  secret: ${JWT_SECRET:your_jwt_secret_key_here_make_it_long_and_secure_at_least_256_bits}
+  access-token-validity: 1800000  # 30분
+  refresh-token-validity: 604800000  # 7일
+
+logging:
+  level:
+    root: info
+    com.forrrest: debug
+    org.hibernate.SQL: debug
+    org.hibernate.type: trace
 
 server:
-  port: 8443
-  ssl:
-    enabled: false # 기본적으로 비활성화, 환경별 설정에서 활성화
+  port: 8080

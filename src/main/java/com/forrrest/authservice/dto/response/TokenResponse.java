@@ -1,16 +1,13 @@
 package com.forrrest.authservice.dto.response;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Builder;
+import lombok.Getter;
 
-@Data
-@AllArgsConstructor
+@Getter
+@Builder
 public class TokenResponse {
     private String accessToken;
-    private String message;
-
-    public TokenResponse(String accessToken) {
-        this.accessToken = accessToken;
-        this.message = "토큰 발급 성공";
-    }
-}
+    private String refreshToken;
+    private String tokenType;
+    private long expiresIn;
+} 

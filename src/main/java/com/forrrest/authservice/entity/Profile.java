@@ -1,16 +1,14 @@
 package com.forrrest.authservice.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "profiles")
 @Getter
-@Setter
 @NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class Profile {
+public class Profile extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,4 +20,10 @@ public class Profile {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
-}
+
+    @Builder
+    public Profile(String profileName, User user) {
+        this.profileName = profileName;
+        this.user = user;
+    }
+} 

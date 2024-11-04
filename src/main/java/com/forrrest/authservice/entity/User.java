@@ -1,29 +1,39 @@
 package com.forrrest.authservice.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
-@Table(name = "users")
 @Getter
-@Setter
 @NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class User {
+@Table(name = "users")
+public class User extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, nullable = false)
-    private String username; // 로그인 아이디 (예: 이메일)
+    @Column(nullable = false, unique = true)
+    private String email;
 
     @Column(nullable = false)
     private String password;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Profile> profiles;
-}
+    @Column(nullable = false)
+    private String username;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Profile> profiles = new ArrayList<>();
+
+    @Builder
+    public User(String email, String password, String username) {
+        this.email = email;
+        this.password = password;
+        this.username = username;
+    }
+} 
