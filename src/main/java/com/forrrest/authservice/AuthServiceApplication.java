@@ -1,12 +1,18 @@
 package com.forrrest.authservice;
 
-import jakarta.annotation.PostConstruct;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-
 import java.util.TimeZone;
 
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.ComponentScan;
+
+import jakarta.annotation.PostConstruct;
+
 @SpringBootApplication
+@ComponentScan(basePackages = {
+	"com.forrrest.authservice",
+	"com.forrrest.common"
+})
 public class AuthServiceApplication {
 
 	public static void main(String[] args) {

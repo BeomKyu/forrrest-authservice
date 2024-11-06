@@ -15,7 +15,7 @@ import com.forrrest.authservice.exception.ErrorCode;
 import com.forrrest.authservice.repository.ProfileRepository;
 import com.forrrest.authservice.repository.RefreshTokenRepository;
 import com.forrrest.authservice.repository.UserRepository;
-import com.forrrest.authservice.security.JwtProvider;
+import com.forrrest.common.security.jwt.JwtProvider;
 
 import lombok.RequiredArgsConstructor;
 
