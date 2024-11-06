@@ -1,13 +1,16 @@
 package com.forrrest.authservice.controller;
 
 import com.forrrest.authservice.dto.request.ProfileRequest;
+import com.forrrest.authservice.dto.response.AuthResponse;
 import com.forrrest.authservice.dto.response.ProfileResponse;
 import com.forrrest.authservice.service.ProfileService;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -27,8 +30,8 @@ public class ProfileController {
     @SecurityRequirement(name = "bearer-token")
     @PostMapping
     public ResponseEntity<ProfileResponse> createProfile(
-            @AuthenticationPrincipal UserDetails userDetails,
-            @Valid @RequestBody ProfileRequest request) {
+        @AuthenticationPrincipal UserDetails userDetails,
+        @Valid @RequestBody ProfileRequest request) {
         return ResponseEntity.ok(profileService.createProfile(userDetails.getUsername(), request));
     }
 
@@ -43,8 +46,8 @@ public class ProfileController {
     @SecurityRequirement(name = "bearer-token")
     @GetMapping("/{profileId}")
     public ResponseEntity<ProfileResponse> getProfile(
-            @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable Long profileId) {
+        @AuthenticationPrincipal UserDetails userDetails,
+        @PathVariable Long profileId) {
         return ResponseEntity.ok(profileService.getProfile(userDetails.getUsername(), profileId));
     }
 
@@ -52,9 +55,17 @@ public class ProfileController {
     @SecurityRequirement(name = "bearer-token")
     @DeleteMapping("/{profileId}")
     public ResponseEntity<Void> deleteProfile(
-            @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable Long profileId) {
+        @AuthenticationPrincipal UserDetails userDetails,
+        @PathVariable Long profileId) {
         profileService.deleteProfile(userDetails.getUsername(), profileId);
         return ResponseEntity.noContent().build();
     }
-} 
+
+    @PatchMapping("/{profileId}/select")
+    @SecurityRequirement(name = "bearer-token")
+    public ResponseEntity<AuthResponse> selectProfile(
+        @AuthenticationPrincipal UserDetails userDetails,
+        @PathVariable Long profileId) {
+        return ResponseEntity.ok(profileService.selectProfile(userDetails.getUsername(), profileId));
+    }
+}

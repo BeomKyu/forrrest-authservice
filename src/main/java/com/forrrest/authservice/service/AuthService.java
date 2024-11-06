@@ -1,129 +1,109 @@
 package com.forrrest.authservice.service;
 
-import java.time.LocalDateTime;
-
 import com.forrrest.authservice.dto.request.TokenRequest;
+import com.forrrest.authservice.dto.response.AuthResponse;
+import com.forrrest.authservice.dto.response.ProfileResponse;
+import com.forrrest.authservice.dto.response.TokenInfo;
 import com.forrrest.authservice.entity.Profile;
-import com.forrrest.authservice.entity.RefreshToken;
 import com.forrrest.authservice.entity.User;
 import com.forrrest.authservice.dto.request.LoginRequest;
 import com.forrrest.authservice.dto.request.SignupRequest;
-import com.forrrest.authservice.dto.response.TokenResponse;
 import com.forrrest.authservice.dto.response.UserResponse;
 import com.forrrest.authservice.exception.CustomException;
 import com.forrrest.authservice.exception.ErrorCode;
-import com.forrrest.authservice.repository.ProfileRepository;
-import com.forrrest.authservice.repository.RefreshTokenRepository;
-import com.forrrest.authservice.repository.UserRepository;
 import com.forrrest.common.security.jwt.JwtProvider;
 
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class AuthService {
 
-    private final UserRepository userRepository;
-    private final ProfileRepository profileRepository;
-    private final RefreshTokenRepository refreshTokenRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final UserService userService;
+    private final ProfileService profileService;
     private final JwtProvider jwtProvider;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public UserResponse signup(SignupRequest request) {
-        if (userRepository.existsByEmail(request.getEmail())) {
+        if (userService.existsByEmail(request.getEmail())) {
             throw new CustomException(ErrorCode.EMAIL_DUPLICATION);
         }
 
-        User user = User.builder()
-            .email(request.getEmail())
-            .password(passwordEncoder.encode(request.getPassword()))
-            .username(request.getUsername())
-            .build();
-
-        user = userRepository.save(user);
-
-        // 기본 프로필 자동 생성
-        Profile defaultProfile = Profile.builder()
-            .profileName(user.getUsername() + "의 프로필")
-            .user(user)
-            .build();
-        profileRepository.save(defaultProfile);
+        User user = userService.createUser(request);
+        profileService.createDefaultProfile(user);
 
         return UserResponse.from(user);
     }
 
     @Transactional
-    public TokenResponse login(LoginRequest request) {
-        User user = userRepository.findByEmail(request.getEmail())
-            .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+    public AuthResponse login(LoginRequest request) {
+        User user = userService.getUserByEmail(request.getEmail());
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new CustomException(ErrorCode.INVALID_PASSWORD);
         }
 
-        String accessToken = jwtProvider.createAccessToken(user.getEmail());
-        String refreshToken = jwtProvider.createRefreshToken(user.getEmail());
+        Profile defaultProfile = profileService.getDefaultProfile(user);
 
-        // RefreshToken 만료 시간 계산 (예: 7일)
-        LocalDateTime expiryDate = LocalDateTime.now().plusDays(7);
+        String userAccessToken = jwtProvider.createAccessToken(user.getEmail());
+        String userRefreshToken = jwtProvider.createRefreshToken(user.getEmail());
+        String profileAccessToken = jwtProvider.createProfileAccessToken(user.getEmail(), defaultProfile.getId());
+        String profileRefreshToken = jwtProvider.createProfileRefreshToken(user.getEmail(), defaultProfile.getId());
 
-        // RefreshToken 저장 또는 업데이트
-        RefreshToken refreshTokenEntity = refreshTokenRepository.findById(user.getEmail())
-            .map(entity -> entity.updateToken(refreshToken, expiryDate))
-            .orElse(RefreshToken.builder()
-                .email(user.getEmail())
-                .refreshToken(refreshToken)
-                .expiryDate(expiryDate)
-                .build());
-
-        refreshTokenRepository.save(refreshTokenEntity);
-
-        return TokenResponse.builder()
-            .accessToken(accessToken)
-            .refreshToken(refreshToken)
-            .tokenType("Bearer")
-            .expiresIn(3600)  // accessToken 만료 시간 (초)
+        return AuthResponse.builder()
+            .userToken(TokenInfo.builder()
+                .accessToken(userAccessToken)
+                .refreshToken(userRefreshToken)
+                .tokenType("Bearer")
+                .expiresIn(jwtProvider.getAccessTokenValidityInMilliseconds())
+                .build())
+            .profileToken(TokenInfo.builder()
+                .accessToken(profileAccessToken)
+                .refreshToken(profileRefreshToken)
+                .tokenType("Bearer")
+                .expiresIn(jwtProvider.getAccessTokenValidityInMilliseconds())
+                .build())
+            .defaultProfile(ProfileResponse.from(defaultProfile))
             .build();
     }
 
     @Transactional
-    public TokenResponse refreshToken(TokenRequest request) {
-        // 리프레시 토큰 유효성 검증
+    public AuthResponse refreshToken(TokenRequest request) {
         if (!jwtProvider.validateToken(request.getRefreshToken())) {
             throw new CustomException(ErrorCode.INVALID_TOKEN);
         }
 
-        // DB에서 리프레시 토큰 조회
-        RefreshToken refreshToken = refreshTokenRepository.findByRefreshToken(request.getRefreshToken())
-            .orElseThrow(() -> new CustomException(ErrorCode.INVALID_TOKEN));
+        Authentication authentication = jwtProvider.getAuthentication(request.getRefreshToken());
+        String email = authentication.getName();
+        User user = userService.getUserByEmail(email);
+        Profile defaultProfile = profileService.getDefaultProfile(user);
 
-        // 토큰 만료 여부 확인
-        if (refreshToken.isExpired()) {
-            refreshTokenRepository.delete(refreshToken);
-            throw new CustomException(ErrorCode.EXPIRED_TOKEN);
-        }
+        String userAccessToken = jwtProvider.createAccessToken(email);
+        String userRefreshToken = jwtProvider.createRefreshToken(email);
+        String profileAccessToken = jwtProvider.createProfileAccessToken(email, defaultProfile.getId());
+        String profileRefreshToken = jwtProvider.createProfileRefreshToken(email, defaultProfile.getId());
 
-        // 새로운 액세스 토큰 발급
-        String newAccessToken = jwtProvider.createAccessToken(refreshToken.getEmail());
-
-        // 리프레시 토큰 재발급 (선택사항 - 리프레시 토큰 재사용 방지)
-        String newRefreshToken = jwtProvider.createRefreshToken(refreshToken.getEmail());
-        LocalDateTime expiryDate = LocalDateTime.now().plusDays(7);
-
-        // 리프레시 토큰 업데이트
-        refreshToken.updateToken(newRefreshToken, expiryDate);
-        refreshTokenRepository.save(refreshToken);
-
-        return TokenResponse.builder()
-            .accessToken(newAccessToken)
-            .refreshToken(newRefreshToken)
-            .tokenType("Bearer")
-            .expiresIn(3600)
+        return AuthResponse.builder()
+            .userToken(TokenInfo.builder()
+                .accessToken(userAccessToken)
+                .refreshToken(userRefreshToken)
+                .tokenType("Bearer")
+                .expiresIn(jwtProvider.getAccessTokenValidityInMilliseconds())
+                .build())
+            .profileToken(TokenInfo.builder()
+                .accessToken(profileAccessToken)
+                .refreshToken(profileRefreshToken)
+                .tokenType("Bearer")
+                .expiresIn(jwtProvider.getAccessTokenValidityInMilliseconds())
+                .build())
+            .defaultProfile(ProfileResponse.from(defaultProfile))
             .build();
     }
-} 
+}

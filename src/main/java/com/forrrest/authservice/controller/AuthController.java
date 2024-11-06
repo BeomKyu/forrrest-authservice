@@ -3,7 +3,7 @@ package com.forrrest.authservice.controller;
 import com.forrrest.authservice.dto.request.LoginRequest;
 import com.forrrest.authservice.dto.request.SignupRequest;
 import com.forrrest.authservice.dto.request.TokenRequest;
-import com.forrrest.authservice.dto.response.TokenResponse;
+import com.forrrest.authservice.dto.response.AuthResponse;
 import com.forrrest.authservice.dto.response.UserResponse;
 import com.forrrest.authservice.service.AuthService;
 
@@ -34,13 +34,13 @@ public class AuthController {
 
     @Operation(summary = "로그인", description = "사용자 인증 후 토큰을 발급합니다.")
     @PostMapping("/login")
-    public ResponseEntity<TokenResponse> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(authService.login(request));
     }
 
     @Operation(summary = "토큰 갱신", description = "리프레시 토큰을 사용하여 새로운 액세스 토큰을 발급받습니다.")
     @PostMapping("/refresh")
-    public ResponseEntity<TokenResponse> refresh(@Valid @RequestBody TokenRequest request) {
+    public ResponseEntity<AuthResponse> refresh(@Valid @RequestBody TokenRequest request) {
         return ResponseEntity.ok(authService.refreshToken(request));
     }
-} 
+}

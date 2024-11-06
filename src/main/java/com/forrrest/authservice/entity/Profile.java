@@ -15,15 +15,19 @@ public class Profile extends BaseTimeEntity {
     private Long id;
 
     @Column(nullable = false)
-    private String profileName;
+    private String name;
+
+    @Column(nullable = false)
+    private boolean isDefault;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @Builder
-    public Profile(String profileName, User user) {
-        this.profileName = profileName;
+    public Profile(String name, boolean isDefault, User user) {
+        this.name = name;
+        this.isDefault = isDefault;
         this.user = user;
     }
-} 
+}

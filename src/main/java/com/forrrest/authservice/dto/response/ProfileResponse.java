@@ -10,14 +10,14 @@ import java.time.LocalDateTime;
 @Builder
 public class ProfileResponse {
     private Long id;
-    private String profileName;
+    private String name;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
     public static ProfileResponse from(Profile profile) {
         return ProfileResponse.builder()
                 .id(profile.getId())
-                .profileName(profile.getProfileName())
+                .name(profile.getName())
                 .createdAt(profile.getCreatedAt())
                 .updatedAt(profile.getUpdatedAt())
                 .build();
