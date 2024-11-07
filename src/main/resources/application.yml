@@ -16,9 +16,10 @@ springdoc:
   default-produces-media-type: application/json
 
 jwt:
-  secret: ${JWT_SECRET:your_jwt_secret_key_here_make_it_long_and_secure_at_least_256_bits}
-  access-token-validity: 1800000  # 30분
-  refresh-token-validity: 604800000  # 7일
+  secret: ${JWT_SECRET:c2VjcmV0a2V5Zm9yZGV2ZW52aXJvbm1lbnRzZWNyZXRrZXlmb3JkZXZlbnZpcm9ubWVudA==}  # Base64 인코딩된 문자열
+  accessTokenValidityInMilliseconds: 3600000
+  refreshTokenValidityInMilliseconds: 604800000
+  appTokenValidityInMilliseconds: 2592000000
 
 logging:
   level:

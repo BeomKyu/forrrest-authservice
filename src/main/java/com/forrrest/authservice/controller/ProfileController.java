@@ -61,6 +61,7 @@ public class ProfileController {
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "프로필 선택", description = "특정 프로필을 선택합니다.")
     @PatchMapping("/{profileId}/select")
     @SecurityRequirement(name = "bearer-token")
     public ResponseEntity<AuthResponse> selectProfile(
