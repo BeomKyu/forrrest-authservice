@@ -22,6 +22,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Map;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -55,15 +58,27 @@ public class AuthService {
 
         Profile defaultProfile = profileService.getDefaultProfile(user);
 
-        String userAccessToken = jwtTokenProvider.createToken(user.getEmail(), TokenType.USER_ACCESS);
-        String userRefreshToken = jwtTokenProvider.createToken(user.getEmail(), TokenType.USER_REFRESH);
+        Map<String, Object> userClaims = Map.of(
+            "username", user.getEmail(),
+            "roles", List.of("USER")
+        );
+
+        Map<String, Object> profileClaims = Map.of(
+            "username", user.getEmail(),
+            "roles", List.of("PROFILE")
+        );
+
+        String userAccessToken = jwtTokenProvider.createToken(user.getEmail(), TokenType.USER_ACCESS, userClaims);
+        String userRefreshToken = jwtTokenProvider.createToken(user.getEmail(), TokenType.USER_REFRESH, userClaims);
         String profileAccessToken = jwtTokenProvider.createToken(
             String.valueOf(defaultProfile.getId()), 
-            TokenType.PROFILE_ACCESS
+            TokenType.PROFILE_ACCESS,
+            profileClaims
         );
         String profileRefreshToken = jwtTokenProvider.createToken(
             String.valueOf(defaultProfile.getId()), 
-            TokenType.PROFILE_REFRESH
+            TokenType.PROFILE_REFRESH,
+            profileClaims
         );
 
         return AuthResponse.builder()
@@ -94,15 +109,27 @@ public class AuthService {
         User user = userService.getUserByEmail(email);
         Profile defaultProfile = profileService.getDefaultProfile(user);
 
-        String userAccessToken = jwtTokenProvider.createToken(user.getEmail(), TokenType.USER_ACCESS);
-        String userRefreshToken = jwtTokenProvider.createToken(user.getEmail(), TokenType.USER_REFRESH);
+        Map<String, Object> userClaims = Map.of(
+            "username", user.getEmail(),
+            "roles", List.of("USER")
+        );
+
+        Map<String, Object> profileClaims = Map.of(
+            "username", user.getEmail(),
+            "roles", List.of("PROFILE")
+        );
+
+        String userAccessToken = jwtTokenProvider.createToken(user.getEmail(), TokenType.USER_ACCESS, userClaims);
+        String userRefreshToken = jwtTokenProvider.createToken(user.getEmail(), TokenType.USER_REFRESH, userClaims);
         String profileAccessToken = jwtTokenProvider.createToken(
             String.valueOf(defaultProfile.getId()),
-            TokenType.PROFILE_ACCESS
+            TokenType.PROFILE_ACCESS,
+            profileClaims
         );
         String profileRefreshToken = jwtTokenProvider.createToken(
             String.valueOf(defaultProfile.getId()),
-            TokenType.PROFILE_REFRESH
+            TokenType.PROFILE_REFRESH,
+            profileClaims
         );
 
         return AuthResponse.builder()

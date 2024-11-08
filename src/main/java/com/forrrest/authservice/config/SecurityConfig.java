@@ -21,6 +21,7 @@ import com.forrrest.common.security.token.TokenProvider;
 public class SecurityConfig {
 
     private final TokenProvider tokenProvider;
+    private final UserTokenFilter userTokenFilter;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -32,12 +33,10 @@ public class SecurityConfig {
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                 .requestMatchers("/auth/login", "/auth/signup").permitAll()
                 .requestMatchers("/actuator/**").permitAll()
-                .anyRequest().authenticated()
+                .requestMatchers("/users/**", "/profiles/**").hasRole("USER")
+                .anyRequest().denyAll()
             )
-            .addFilterBefore(
-                new UserTokenFilter(tokenProvider, new String[]{"/auth/refresh", "/users/**"}),
-                UsernamePasswordAuthenticationFilter.class
-            );
+            .addFilterBefore(userTokenFilter, UsernamePasswordAuthenticationFilter.class);
         
         return http.build();
     }

@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -98,15 +99,27 @@ public class ProfileService {
         Profile profile = profileRepository.findByIdAndUser(profileId, user)
             .orElseThrow(() -> new CustomException(ErrorCode.PROFILE_NOT_FOUND));
 
-        String userAccessToken = jwtTokenProvider.createToken(email, TokenType.USER_ACCESS);
-        String userRefreshToken = jwtTokenProvider.createToken(email, TokenType.USER_REFRESH);
+        Map<String, Object> userClaims = Map.of(
+            "username", user.getEmail(),
+            "roles", List.of("USER")
+        );
+
+        Map<String, Object> profileClaims = Map.of(
+            "username", user.getEmail(),
+            "roles", List.of("PROFILE")
+        );
+
+        String userAccessToken = jwtTokenProvider.createToken(user.getEmail(), TokenType.USER_ACCESS, userClaims);
+        String userRefreshToken = jwtTokenProvider.createToken(user.getEmail(), TokenType.USER_REFRESH, userClaims);
         String profileAccessToken = jwtTokenProvider.createToken(
             String.valueOf(profile.getId()), 
-            TokenType.PROFILE_ACCESS
+            TokenType.PROFILE_ACCESS,
+            profileClaims
         );
         String profileRefreshToken = jwtTokenProvider.createToken(
             String.valueOf(profile.getId()), 
-            TokenType.PROFILE_REFRESH
+            TokenType.PROFILE_REFRESH,
+            profileClaims
         );
 
         return AuthResponse.builder()
