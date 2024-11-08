@@ -11,7 +11,9 @@ import com.forrrest.authservice.dto.request.SignupRequest;
 import com.forrrest.authservice.dto.response.UserResponse;
 import com.forrrest.authservice.exception.CustomException;
 import com.forrrest.authservice.exception.ErrorCode;
-import com.forrrest.common.security.jwt.JwtProvider;
+import com.forrrest.common.security.config.TokenProperties;
+import com.forrrest.common.security.token.JwtTokenProvider;
+import com.forrrest.common.security.token.TokenType;
 
 import lombok.RequiredArgsConstructor;
 
@@ -27,7 +29,8 @@ public class AuthService {
 
     private final UserService userService;
     private final ProfileService profileService;
-    private final JwtProvider jwtProvider;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final TokenProperties tokenProperties;
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
@@ -52,23 +55,29 @@ public class AuthService {
 
         Profile defaultProfile = profileService.getDefaultProfile(user);
 
-        String userAccessToken = jwtProvider.createAccessToken(user.getEmail());
-        String userRefreshToken = jwtProvider.createRefreshToken(user.getEmail());
-        String profileAccessToken = jwtProvider.createProfileAccessToken(user.getEmail(), defaultProfile.getId());
-        String profileRefreshToken = jwtProvider.createProfileRefreshToken(user.getEmail(), defaultProfile.getId());
+        String userAccessToken = jwtTokenProvider.createToken(user.getEmail(), TokenType.USER_ACCESS);
+        String userRefreshToken = jwtTokenProvider.createToken(user.getEmail(), TokenType.USER_REFRESH);
+        String profileAccessToken = jwtTokenProvider.createToken(
+            String.valueOf(defaultProfile.getId()), 
+            TokenType.PROFILE_ACCESS
+        );
+        String profileRefreshToken = jwtTokenProvider.createToken(
+            String.valueOf(defaultProfile.getId()), 
+            TokenType.PROFILE_REFRESH
+        );
 
         return AuthResponse.builder()
             .userToken(TokenInfo.builder()
                 .accessToken(userAccessToken)
                 .refreshToken(userRefreshToken)
                 .tokenType("Bearer")
-                .expiresIn(jwtProvider.getJwtProperties().getAccessTokenValidityInMilliseconds())
+                .expiresIn(tokenProperties.getValidity().get(TokenType.USER_ACCESS))
                 .build())
             .profileToken(TokenInfo.builder()
                 .accessToken(profileAccessToken)
                 .refreshToken(profileRefreshToken)
                 .tokenType("Bearer")
-                .expiresIn(jwtProvider.getJwtProperties().getAccessTokenValidityInMilliseconds())
+                .expiresIn(tokenProperties.getValidity().get(TokenType.PROFILE_ACCESS))
                 .build())
             .defaultProfile(ProfileResponse.from(defaultProfile))
             .build();
@@ -76,32 +85,38 @@ public class AuthService {
 
     @Transactional
     public AuthResponse refreshToken(TokenRequest request) {
-        if (!jwtProvider.validateToken(request.getRefreshToken())) {
+        if (!jwtTokenProvider.validateToken(request.getRefreshToken())) {
             throw new CustomException(ErrorCode.INVALID_TOKEN);
         }
 
-        Authentication authentication = jwtProvider.getAuthentication(request.getRefreshToken());
+        Authentication authentication = jwtTokenProvider.getAuthentication(request.getRefreshToken());
         String email = authentication.getName();
         User user = userService.getUserByEmail(email);
         Profile defaultProfile = profileService.getDefaultProfile(user);
 
-        String userAccessToken = jwtProvider.createAccessToken(email);
-        String userRefreshToken = jwtProvider.createRefreshToken(email);
-        String profileAccessToken = jwtProvider.createProfileAccessToken(email, defaultProfile.getId());
-        String profileRefreshToken = jwtProvider.createProfileRefreshToken(email, defaultProfile.getId());
+        String userAccessToken = jwtTokenProvider.createToken(user.getEmail(), TokenType.USER_ACCESS);
+        String userRefreshToken = jwtTokenProvider.createToken(user.getEmail(), TokenType.USER_REFRESH);
+        String profileAccessToken = jwtTokenProvider.createToken(
+            String.valueOf(defaultProfile.getId()),
+            TokenType.PROFILE_ACCESS
+        );
+        String profileRefreshToken = jwtTokenProvider.createToken(
+            String.valueOf(defaultProfile.getId()),
+            TokenType.PROFILE_REFRESH
+        );
 
         return AuthResponse.builder()
             .userToken(TokenInfo.builder()
                 .accessToken(userAccessToken)
                 .refreshToken(userRefreshToken)
                 .tokenType("Bearer")
-                .expiresIn(jwtProvider.getJwtProperties().getAccessTokenValidityInMilliseconds())
+                .expiresIn(tokenProperties.getValidity().get(TokenType.USER_ACCESS))
                 .build())
             .profileToken(TokenInfo.builder()
                 .accessToken(profileAccessToken)
                 .refreshToken(profileRefreshToken)
                 .tokenType("Bearer")
-                .expiresIn(jwtProvider.getJwtProperties().getAccessTokenValidityInMilliseconds())
+                .expiresIn(tokenProperties.getValidity().get(TokenType.PROFILE_ACCESS))
                 .build())
             .defaultProfile(ProfileResponse.from(defaultProfile))
             .build();

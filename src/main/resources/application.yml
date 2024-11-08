@@ -15,11 +15,20 @@ springdoc:
   default-consumes-media-type: application/json
   default-produces-media-type: application/json
 
-jwt:
-  secret: ${JWT_SECRET:c2VjcmV0a2V5Zm9yZGV2ZW52aXJvbm1lbnRzZWNyZXRrZXlmb3JkZXZlbnZpcm9ubWVudA==}  # Base64 인코딩된 문자열
-  accessTokenValidityInMilliseconds: 3600000
-  refreshTokenValidityInMilliseconds: 604800000
-  appTokenValidityInMilliseconds: 2592000000
+token:
+  secret: ${TOKEN_SECRET:c2VjcmV0a2V5Zm9yZGV2ZW52aXJvbm1lbnRzZWNyZXRrZXlmb3JkZXZlbnZpcm9ubWVudA==}
+  validity:
+    USER_ACCESS: 3600000        # 1시간
+    USER_REFRESH: 604800000     # 7일
+    PROFILE_ACCESS: 3600000     # 1시간
+    PROFILE_REFRESH: 604800000  # 7일
+    NONCE: 300000              # 5분
+
+security:
+  token:
+    user-paths: /api/users/**,/api/auth/**
+    profile-paths: /api/profiles/**
+    nonce-paths: /api/nonce/**
 
 logging:
   level:

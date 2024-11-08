@@ -9,7 +9,10 @@ import com.forrrest.authservice.dto.response.ProfileResponse;
 import com.forrrest.authservice.exception.CustomException;
 import com.forrrest.authservice.exception.ErrorCode;
 import com.forrrest.authservice.repository.ProfileRepository;
-import com.forrrest.common.security.jwt.JwtProvider;
+import com.forrrest.common.security.config.TokenProperties;
+import com.forrrest.common.security.token.JwtTokenProvider;
+import com.forrrest.common.security.token.TokenType;
+
 
 import lombok.RequiredArgsConstructor;
 
@@ -26,7 +29,8 @@ public class ProfileService {
 
     private final ProfileRepository profileRepository;
     private final UserService userService;
-    private final JwtProvider jwtProvider;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final TokenProperties tokenProperties;
 
     @Transactional
     public Profile createDefaultProfile(User user) {
@@ -94,23 +98,29 @@ public class ProfileService {
         Profile profile = profileRepository.findByIdAndUser(profileId, user)
             .orElseThrow(() -> new CustomException(ErrorCode.PROFILE_NOT_FOUND));
 
-        String userAccessToken = jwtProvider.createAccessToken(email);
-        String userRefreshToken = jwtProvider.createRefreshToken(email);
-        String profileAccessToken = jwtProvider.createProfileAccessToken(email, profile.getId());
-        String profileRefreshToken = jwtProvider.createProfileRefreshToken(email, profile.getId());
+        String userAccessToken = jwtTokenProvider.createToken(email, TokenType.USER_ACCESS);
+        String userRefreshToken = jwtTokenProvider.createToken(email, TokenType.USER_REFRESH);
+        String profileAccessToken = jwtTokenProvider.createToken(
+            String.valueOf(profile.getId()), 
+            TokenType.PROFILE_ACCESS
+        );
+        String profileRefreshToken = jwtTokenProvider.createToken(
+            String.valueOf(profile.getId()), 
+            TokenType.PROFILE_REFRESH
+        );
 
         return AuthResponse.builder()
             .userToken(TokenInfo.builder()
                 .accessToken(userAccessToken)
                 .refreshToken(userRefreshToken)
                 .tokenType("Bearer")
-                .expiresIn(jwtProvider.getJwtProperties().getAccessTokenValidityInMilliseconds())
+                .expiresIn(tokenProperties.getValidity().get(TokenType.USER_ACCESS))
                 .build())
             .profileToken(TokenInfo.builder()
                 .accessToken(profileAccessToken)
                 .refreshToken(profileRefreshToken)
                 .tokenType("Bearer")
-                .expiresIn(jwtProvider.getJwtProperties().getAccessTokenValidityInMilliseconds())
+                .expiresIn(tokenProperties.getValidity().get(TokenType.PROFILE_ACCESS))
                 .build())
             .defaultProfile(ProfileResponse.from(profile))
             .build();

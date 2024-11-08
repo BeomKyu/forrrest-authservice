@@ -25,7 +25,8 @@ public class Profile extends BaseTimeEntity {
     private User user;
 
     @Builder
-    public Profile(String name, boolean isDefault, User user) {
+    public Profile(Long id, String name, boolean isDefault, User user) {
+        this.id = id;
         this.name = name;
         this.isDefault = isDefault;
         this.user = user;
