@@ -1,6 +1,4 @@
-# AuthService/Dockerfile
-FROM openjdk:17-jdk-alpine
+FROM openjdk:21-jdk-alpine
 VOLUME /tmp
-COPY build/libs/authservice.jar app.jar
-COPY src/main/resources/keystore/authservice_local.jks /app/keystore/authservice_local.jks
+COPY build/libs/forrrest-authservice.jar app.jar
 ENTRYPOINT ["java","-jar","/app.jar"]

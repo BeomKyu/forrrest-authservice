@@ -6,6 +6,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -51,14 +52,22 @@ class ProfileServiceTest {
             .name("Test Profile")
             .build();
 
+        Map<String, Object> userClaims = Map.of(
+            "username", user.getEmail(),
+            "roles", List.of("USER")
+        );
+
+        Map<String, Object> profileClaims = Map.of(
+            "username", user.getEmail(),
+            "roles", List.of("PROFILE")
+        );
+
         when(userService.getUserByEmail(email)).thenReturn(user);
         when(profileRepository.findByIdAndUser(profileId, user)).thenReturn(Optional.of(profile));
-        when(jwtTokenProvider.createToken(email, TokenType.USER_ACCESS)).thenReturn("userAccessToken");
-        when(jwtTokenProvider.createToken(email, TokenType.USER_REFRESH)).thenReturn("userRefreshToken");
-        when(jwtTokenProvider.createToken(String.valueOf(profileId), TokenType.PROFILE_ACCESS))
-            .thenReturn("profileAccessToken");
-        when(jwtTokenProvider.createToken(String.valueOf(profileId), TokenType.PROFILE_REFRESH))
-            .thenReturn("profileRefreshToken");
+        when(jwtTokenProvider.createToken(email, TokenType.USER_ACCESS, userClaims)).thenReturn("userAccessToken");
+        when(jwtTokenProvider.createToken(email, TokenType.USER_REFRESH, userClaims)).thenReturn("userRefreshToken");
+        when(jwtTokenProvider.createToken(String.valueOf(profileId), TokenType.PROFILE_ACCESS, profileClaims)).thenReturn("profileAccessToken");
+        when(jwtTokenProvider.createToken(String.valueOf(profileId), TokenType.PROFILE_REFRESH, profileClaims)).thenReturn("profileRefreshToken");
         when(tokenProperties.getValidity()).thenReturn(Map.of(
             TokenType.USER_ACCESS, 3600000L,
             TokenType.PROFILE_ACCESS, 3600000L

@@ -7,6 +7,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -55,13 +56,23 @@ class AuthServiceTest {
             .isDefault(true)
             .build();
 
+        Map<String, Object> userClaims = Map.of(
+            "username", user.getEmail(),
+            "roles", List.of("USER")
+        );
+
+        Map<String, Object> profileClaims = Map.of(
+            "username", user.getEmail(),
+            "roles", List.of("PROFILE")
+        );
+
         when(userService.getUserByEmail(request.getEmail())).thenReturn(user);
         when(passwordEncoder.matches(request.getPassword(), user.getPassword())).thenReturn(true);
         when(profileService.getDefaultProfile(user)).thenReturn(defaultProfile);
-        when(jwtTokenProvider.createToken(user.getEmail(), TokenType.USER_ACCESS)).thenReturn("userAccessToken");
-        when(jwtTokenProvider.createToken(user.getEmail(), TokenType.USER_REFRESH)).thenReturn("userRefreshToken");
-        when(jwtTokenProvider.createToken("1", TokenType.PROFILE_ACCESS)).thenReturn("profileAccessToken");
-        when(jwtTokenProvider.createToken("1", TokenType.PROFILE_REFRESH)).thenReturn("profileRefreshToken");
+        when(jwtTokenProvider.createToken(user.getEmail(), TokenType.USER_ACCESS, userClaims)).thenReturn("userAccessToken");
+        when(jwtTokenProvider.createToken(user.getEmail(), TokenType.USER_REFRESH, userClaims)).thenReturn("userRefreshToken");
+        when(jwtTokenProvider.createToken("1", TokenType.PROFILE_ACCESS, profileClaims)).thenReturn("profileAccessToken");
+        when(jwtTokenProvider.createToken("1", TokenType.PROFILE_REFRESH, profileClaims)).thenReturn("profileRefreshToken");
         when(tokenProperties.getValidity()).thenReturn(Map.of(
             TokenType.USER_ACCESS, 3600000L,
             TokenType.PROFILE_ACCESS, 3600000L
