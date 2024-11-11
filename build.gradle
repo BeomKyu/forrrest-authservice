@@ -47,6 +47,15 @@ dependencies {
 //	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
+bootJar {
+	enabled = true
+	mainClass.set('com.forrrest.authservice.AuthServiceApplication')
+}
+
+jar {
+	enabled = false
+}
+
 tasks.named('test') {
 	useJUnitPlatform()
 }
