@@ -1,8 +1,7 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:36191/local_forrrest_db
-#    ?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8
+    url: jdbc:mysql://222.233.6.72:36191/local_forrrest_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8
     username: local_forrrest_user
     password: local_forrrest_password
 
