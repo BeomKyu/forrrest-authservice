@@ -1,3 +1,21 @@
-build/
-*.md
-*.git
+# Git 관련 파일
+.git
+.gitignore
+
+# IDE 및 편집기 파일
+*.idea
+*.vscode
+*.project
+
+# 로컬 환경 구성 파일
+.env
+
+# Gradle 캐시 파일
+.gradle
+
+# 빌드 산출물 중 최종 JAR 파일 외의 모든 것
+build/*
+!build/libs/*.jar
+
+# 로그 파일
+*.log
