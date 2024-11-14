@@ -26,9 +26,9 @@ token:
 
 security:
   token:
-    user-paths: /users/**, /profiles/**
-    profile-paths: #/api/profiles/**
-    nonce-paths: /api/nonce/**
+    user-paths: /users, /profiles
+    profile-paths: 
+    nonce-paths: 
 
 logging:
   level:
