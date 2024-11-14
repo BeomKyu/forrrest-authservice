@@ -26,7 +26,7 @@ token:
 
 security:
   token:
-    user-paths: #/users/**, /profiles/**
+    user-paths: /users/**, /profiles/**
     profile-paths: #/api/profiles/**
     nonce-paths: /api/nonce/**
 
