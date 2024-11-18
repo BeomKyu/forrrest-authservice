@@ -19,7 +19,12 @@ import com.forrrest.common.security.filter.UserTokenFilter;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final UserTokenFilter userTokenFilter;
+    private final UserTokenFilter userTokenFilter1;
+
+
+
+
+
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -34,7 +39,7 @@ public class SecurityConfig {
                 .requestMatchers("/users/**", "/profiles/**").hasRole("USER")
                 .anyRequest().denyAll()
             )
-            .addFilterBefore(userTokenFilter, UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(userTokenFilter1, UsernamePasswordAuthenticationFilter.class);
         
         return http.build();
     }
