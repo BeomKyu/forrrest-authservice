@@ -19,12 +19,7 @@ import com.forrrest.common.security.filter.UserTokenFilter;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final UserTokenFilter userTokenFilter1;
-
-
-
-
-
+    private final UserTokenFilter userTokenFilter;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -34,12 +29,12 @@ public class SecurityConfig {
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                .requestMatchers("/auth/login", "/auth/signup",  "/auth/refresh").permitAll()
+                .requestMatchers("/auth/login", "/auth/signup", "/auth/refresh").permitAll()
                 .requestMatchers("/actuator/**").permitAll()
                 .requestMatchers("/users/**", "/profiles/**").hasRole("USER")
                 .anyRequest().denyAll()
             )
-            .addFilterBefore(userTokenFilter1, UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(userTokenFilter, UsernamePasswordAuthenticationFilter.class);
         
         return http.build();
     }
