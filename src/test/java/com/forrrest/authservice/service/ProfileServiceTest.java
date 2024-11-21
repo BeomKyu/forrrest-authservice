@@ -45,6 +45,7 @@ class ProfileServiceTest {
         Long profileId = 1L;
         User user = User.builder()
             .email(email)
+            .username("Test username")
             .build();
         Profile profile = Profile.builder()
             .id(profileId)
@@ -53,12 +54,12 @@ class ProfileServiceTest {
             .build();
 
         Map<String, Object> userClaims = Map.of(
-            "username", user.getEmail(),
+            "username", user.getUsername(),
             "roles", List.of("USER")
         );
 
         Map<String, Object> profileClaims = Map.of(
-            "username", user.getEmail(),
+            "username", user.getUsername(),
             "roles", List.of("PROFILE")
         );
 

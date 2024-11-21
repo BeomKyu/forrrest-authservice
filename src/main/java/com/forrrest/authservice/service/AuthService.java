@@ -59,12 +59,12 @@ public class AuthService {
         Profile defaultProfile = profileService.getDefaultProfile(user);
 
         Map<String, Object> userClaims = Map.of(
-            "username", user.getEmail(),
+            "username", user.getUsername(),
             "roles", List.of("USER")
         );
 
         Map<String, Object> profileClaims = Map.of(
-            "username", user.getEmail(),
+            "username", user.getUsername(),
             "roles", List.of("PROFILE")
         );
 
@@ -110,12 +110,12 @@ public class AuthService {
         Profile defaultProfile = profileService.getDefaultProfile(user);
 
         Map<String, Object> userClaims = Map.of(
-            "username", user.getEmail(),
+            "username", user.getUsername(),
             "roles", List.of("USER")
         );
 
         Map<String, Object> profileClaims = Map.of(
-            "username", user.getEmail(),
+            "username", user.getUsername(),
             "roles", List.of("PROFILE")
         );
 

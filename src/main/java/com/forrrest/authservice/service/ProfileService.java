@@ -100,12 +100,12 @@ public class ProfileService {
             .orElseThrow(() -> new CustomException(ErrorCode.PROFILE_NOT_FOUND));
 
         Map<String, Object> userClaims = Map.of(
-            "username", user.getEmail(),
+            "username", user.getUsername(),
             "roles", List.of("USER")
         );
 
         Map<String, Object> profileClaims = Map.of(
-            "username", user.getEmail(),
+            "username", user.getUsername(),
             "roles", List.of("PROFILE")
         );
 

@@ -47,6 +47,7 @@ class AuthServiceTest {
         Long profileId = 1L;
         User user = User.builder()
             .email("test@test.com")
+            .username("Test username")
             .password("encodedPassword")
             .build();
         Profile defaultProfile = Profile.builder()
@@ -57,12 +58,12 @@ class AuthServiceTest {
             .build();
 
         Map<String, Object> userClaims = Map.of(
-            "username", user.getEmail(),
+            "username", user.getUsername(),
             "roles", List.of("USER")
         );
 
         Map<String, Object> profileClaims = Map.of(
-            "username", user.getEmail(),
+            "username", user.getUsername(),
             "roles", List.of("PROFILE")
         );
 

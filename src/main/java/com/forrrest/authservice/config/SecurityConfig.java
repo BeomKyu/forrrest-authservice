@@ -29,7 +29,7 @@ public class SecurityConfig {
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                .requestMatchers("/auth/login", "/auth/signup", "/auth/refresh").permitAll()
+                .requestMatchers("/auth/**").permitAll()
                 .requestMatchers("/actuator/**").permitAll()
                 .requestMatchers("/users/**", "/profiles/**").hasRole("USER")
                 .anyRequest().denyAll()
