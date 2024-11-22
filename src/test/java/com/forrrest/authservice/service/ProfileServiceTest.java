@@ -82,7 +82,7 @@ class ProfileServiceTest {
         assertThat(response.getUserToken().getRefreshToken()).isEqualTo("userRefreshToken");
         assertThat(response.getProfileToken().getAccessToken()).isEqualTo("profileAccessToken");
         assertThat(response.getProfileToken().getRefreshToken()).isEqualTo("profileRefreshToken");
-        assertThat(response.getDefaultProfile().getId()).isEqualTo(profile.getId());
+        assertThat(response.getProfileResponse().getId()).isEqualTo(profile.getId());
     }
 
     @Test

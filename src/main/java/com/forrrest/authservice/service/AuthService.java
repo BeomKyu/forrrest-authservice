@@ -5,12 +5,14 @@ import com.forrrest.authservice.dto.response.AuthResponse;
 import com.forrrest.authservice.dto.response.ProfileResponse;
 import com.forrrest.authservice.dto.response.TokenInfo;
 import com.forrrest.authservice.entity.Profile;
+import com.forrrest.authservice.entity.RefreshToken;
 import com.forrrest.authservice.entity.User;
 import com.forrrest.authservice.dto.request.LoginRequest;
 import com.forrrest.authservice.dto.request.SignupRequest;
 import com.forrrest.authservice.dto.response.UserResponse;
 import com.forrrest.authservice.exception.CustomException;
 import com.forrrest.authservice.exception.ErrorCode;
+import com.forrrest.authservice.repository.RefreshTokenRepository;
 import com.forrrest.common.security.config.TokenProperties;
 import com.forrrest.common.security.token.JwtTokenProvider;
 import com.forrrest.common.security.token.TokenType;
@@ -22,6 +24,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -35,6 +38,7 @@ public class AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final TokenProperties tokenProperties;
     private final PasswordEncoder passwordEncoder;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     @Transactional
     public UserResponse signup(SignupRequest request) {
@@ -71,15 +75,18 @@ public class AuthService {
         String userAccessToken = jwtTokenProvider.createToken(user.getEmail(), TokenType.USER_ACCESS, userClaims);
         String userRefreshToken = jwtTokenProvider.createToken(user.getEmail(), TokenType.USER_REFRESH, userClaims);
         String profileAccessToken = jwtTokenProvider.createToken(
-            String.valueOf(defaultProfile.getId()), 
+            String.valueOf(defaultProfile.getId()),
             TokenType.PROFILE_ACCESS,
             profileClaims
         );
         String profileRefreshToken = jwtTokenProvider.createToken(
-            String.valueOf(defaultProfile.getId()), 
+            String.valueOf(defaultProfile.getId()),
             TokenType.PROFILE_REFRESH,
             profileClaims
         );
+
+        refreshTokenRepository.save(
+            new RefreshToken(user.getEmail(), userRefreshToken, LocalDateTime.now()));
 
         return AuthResponse.builder()
             .userToken(TokenInfo.builder()
@@ -94,7 +101,7 @@ public class AuthService {
                 .tokenType("Bearer")
                 .expiresIn(tokenProperties.getValidity().get(TokenType.PROFILE_ACCESS))
                 .build())
-            .defaultProfile(ProfileResponse.from(defaultProfile))
+            .profileResponse(ProfileResponse.from(defaultProfile))
             .build();
     }
 
@@ -102,6 +109,10 @@ public class AuthService {
     public AuthResponse refreshToken(TokenRequest request) {
         if (!jwtTokenProvider.validateToken(request.getRefreshToken())) {
             throw new CustomException(ErrorCode.INVALID_TOKEN);
+        }
+
+        if (!refreshTokenRepository.existsByRefreshToken(request.getRefreshToken())) {
+            throw new CustomException(ErrorCode.PROFILE_TOKEN_INVALID);
         }
 
         Authentication authentication = jwtTokenProvider.getAuthentication(request.getRefreshToken());
@@ -126,6 +137,10 @@ public class AuthService {
             TokenType.PROFILE_ACCESS,
             profileClaims
         );
+
+        refreshTokenRepository.save(
+            new RefreshToken(user.getEmail(), userRefreshToken, LocalDateTime.now()));
+
         String profileRefreshToken = jwtTokenProvider.createToken(
             String.valueOf(defaultProfile.getId()),
             TokenType.PROFILE_REFRESH,
@@ -145,7 +160,7 @@ public class AuthService {
                 .tokenType("Bearer")
                 .expiresIn(tokenProperties.getValidity().get(TokenType.PROFILE_ACCESS))
                 .build())
-            .defaultProfile(ProfileResponse.from(defaultProfile))
+            .profileResponse(ProfileResponse.from(defaultProfile))
             .build();
     }
 }

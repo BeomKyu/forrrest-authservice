@@ -8,5 +8,5 @@ import lombok.Getter;
 public class AuthResponse {
     private TokenInfo userToken;
     private TokenInfo profileToken;
-    private ProfileResponse defaultProfile;
+    private ProfileResponse profileResponse;
 }

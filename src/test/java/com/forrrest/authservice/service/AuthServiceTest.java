@@ -13,13 +13,17 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.any;
 
 import com.forrrest.authservice.dto.request.LoginRequest;
 import com.forrrest.authservice.dto.response.AuthResponse;
 import com.forrrest.authservice.entity.Profile;
+import com.forrrest.authservice.entity.RefreshToken;
 import com.forrrest.authservice.entity.User;
 import com.forrrest.authservice.exception.CustomException;
 import com.forrrest.authservice.exception.ErrorCode;
+import com.forrrest.authservice.repository.ProfileRepository;
+import com.forrrest.authservice.repository.RefreshTokenRepository;
 import com.forrrest.common.security.config.TokenProperties;
 import com.forrrest.common.security.token.JwtTokenProvider;
 import com.forrrest.common.security.token.TokenType;
@@ -36,6 +40,8 @@ class AuthServiceTest {
     private TokenProperties tokenProperties;
     @Mock
     private PasswordEncoder passwordEncoder;
+    @Mock
+    private RefreshTokenRepository refreshTokenRepository;
 
     @InjectMocks
     private AuthService authService;
@@ -70,6 +76,7 @@ class AuthServiceTest {
         when(userService.getUserByEmail(request.getEmail())).thenReturn(user);
         when(passwordEncoder.matches(request.getPassword(), user.getPassword())).thenReturn(true);
         when(profileService.getDefaultProfile(user)).thenReturn(defaultProfile);
+        when(refreshTokenRepository.save(any(RefreshToken.class))).thenReturn(new RefreshToken());
         when(jwtTokenProvider.createToken(user.getEmail(), TokenType.USER_ACCESS, userClaims)).thenReturn("userAccessToken");
         when(jwtTokenProvider.createToken(user.getEmail(), TokenType.USER_REFRESH, userClaims)).thenReturn("userRefreshToken");
         when(jwtTokenProvider.createToken("1", TokenType.PROFILE_ACCESS, profileClaims)).thenReturn("profileAccessToken");
@@ -87,7 +94,7 @@ class AuthServiceTest {
         assertThat(response.getUserToken().getRefreshToken()).isEqualTo("userRefreshToken");
         assertThat(response.getProfileToken().getAccessToken()).isEqualTo("profileAccessToken");
         assertThat(response.getProfileToken().getRefreshToken()).isEqualTo("profileRefreshToken");
-        assertThat(response.getDefaultProfile().getId()).isEqualTo(defaultProfile.getId());
+        assertThat(response.getProfileResponse().getId()).isEqualTo(defaultProfile.getId());
     }
 
     @Test

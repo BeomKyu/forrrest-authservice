@@ -135,7 +135,7 @@ public class ProfileService {
                 .tokenType("Bearer")
                 .expiresIn(tokenProperties.getValidity().get(TokenType.PROFILE_ACCESS))
                 .build())
-            .defaultProfile(ProfileResponse.from(profile))
+            .profileResponse(ProfileResponse.from(profile))
             .build();
     }
 }
