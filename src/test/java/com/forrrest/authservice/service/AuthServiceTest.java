@@ -1,5 +1,8 @@
 package com.forrrest.authservice.service;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -7,28 +10,15 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.List;
-import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.any;
-
 import com.forrrest.authservice.dto.request.LoginRequest;
 import com.forrrest.authservice.dto.response.AuthResponse;
 import com.forrrest.authservice.dto.response.ProfileResponse;
 import com.forrrest.authservice.dto.response.TokenInfo;
 import com.forrrest.authservice.entity.Profile;
-import com.forrrest.authservice.entity.RefreshToken;
 import com.forrrest.authservice.entity.User;
 import com.forrrest.authservice.exception.CustomException;
 import com.forrrest.authservice.exception.ErrorCode;
-import com.forrrest.authservice.repository.ProfileRepository;
 import com.forrrest.authservice.repository.RefreshTokenRepository;
-import com.forrrest.common.security.config.TokenProperties;
-import com.forrrest.common.security.token.JwtTokenProvider;
-import com.forrrest.common.security.token.TokenType;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
@@ -96,4 +86,6 @@ class AuthServiceTest {
             .isInstanceOf(CustomException.class)
             .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_PASSWORD);
     }
+
+
 }

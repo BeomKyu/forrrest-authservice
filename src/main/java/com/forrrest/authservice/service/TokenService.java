@@ -1,23 +1,24 @@
 package com.forrrest.authservice.service;
 
-import com.forrrest.authservice.dto.response.AuthResponse;
-import com.forrrest.authservice.dto.response.TokenInfo;
-import com.forrrest.authservice.dto.response.ProfileResponse;
-import com.forrrest.authservice.entity.Profile;
-import com.forrrest.authservice.entity.RefreshToken;
-import com.forrrest.authservice.entity.User;
-import com.forrrest.common.security.config.TokenProperties;
-import com.forrrest.common.security.token.JwtTokenProvider;
-import com.forrrest.common.security.token.TokenType;
-import com.forrrest.authservice.repository.RefreshTokenRepository;
-
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.forrrest.authservice.dto.response.AuthResponse;
+import com.forrrest.authservice.dto.response.ProfileResponse;
+import com.forrrest.authservice.dto.response.TokenInfo;
+import com.forrrest.authservice.entity.Profile;
+import com.forrrest.authservice.entity.RefreshToken;
+import com.forrrest.authservice.entity.User;
+import com.forrrest.authservice.repository.RefreshTokenRepository;
+import com.forrrest.common.security.config.TokenProperties;
+import com.forrrest.common.security.token.JwtTokenProvider;
+import com.forrrest.common.security.token.TokenType;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -78,4 +79,6 @@ public class TokenService {
     public String getEmailFromToken(String token) {
         return jwtTokenProvider.getAuthentication(token).getName();
     }
+
+
 }

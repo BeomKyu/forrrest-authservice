@@ -1,23 +1,21 @@
 package com.forrrest.authservice.service;
 
-import com.forrrest.authservice.dto.response.AuthResponse;
-import com.forrrest.authservice.entity.Profile;
-import com.forrrest.authservice.entity.User;
-import com.forrrest.authservice.dto.request.ProfileRequest;
-import com.forrrest.authservice.dto.response.ProfileResponse;
-import com.forrrest.authservice.exception.CustomException;
-import com.forrrest.authservice.exception.ErrorCode;
-import com.forrrest.authservice.repository.ProfileRepository;
-import com.forrrest.authservice.service.TokenService;
-
-import lombok.RequiredArgsConstructor;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import com.forrrest.authservice.dto.request.ProfileRequest;
+import com.forrrest.authservice.dto.response.AuthResponse;
+import com.forrrest.authservice.dto.response.ProfileResponse;
+import com.forrrest.authservice.entity.Profile;
+import com.forrrest.authservice.entity.User;
+import com.forrrest.authservice.exception.CustomException;
+import com.forrrest.authservice.exception.ErrorCode;
+import com.forrrest.authservice.repository.ProfileRepository;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -96,4 +94,6 @@ public class ProfileService {
 
         return tokenService.createAuthResponse(user, profile);
     }
+
+
 }

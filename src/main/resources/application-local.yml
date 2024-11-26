@@ -25,3 +25,4 @@ logging:
 
 server:
   port: ${AUTH_PORT:8080}
+

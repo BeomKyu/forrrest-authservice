@@ -45,5 +45,7 @@ public class AuthController {
         @Valid @RequestBody TokenRequest request,
         @RequestParam(required = false) Long profileId) {
         return ResponseEntity.ok(authService.refreshToken(request, profileId));
+
+
     }
 }
