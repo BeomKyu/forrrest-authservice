@@ -15,6 +15,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
 import com.forrrest.authservice.dto.response.AuthResponse;
+import com.forrrest.authservice.dto.response.ProfileResponse;
+import com.forrrest.authservice.dto.response.TokenInfo;
 import com.forrrest.authservice.entity.Profile;
 import com.forrrest.authservice.entity.User;
 import com.forrrest.authservice.exception.CustomException;
@@ -34,6 +36,8 @@ class ProfileServiceTest {
     private JwtTokenProvider jwtTokenProvider;
     @Mock
     private TokenProperties tokenProperties;
+    @Mock
+    private TokenService tokenService;
 
     @InjectMocks
     private ProfileService profileService;
@@ -52,37 +56,21 @@ class ProfileServiceTest {
             .user(user)
             .name("Test Profile")
             .build();
-
-        Map<String, Object> userClaims = Map.of(
-            "username", user.getUsername(),
-            "roles", List.of("USER")
-        );
-
-        Map<String, Object> profileClaims = Map.of(
-            "username", user.getUsername(),
-            "roles", List.of("PROFILE")
-        );
+        AuthResponse expectedResponse = AuthResponse.builder()
+            .userToken(new TokenInfo("userAccessToken", "userRefreshToken", "Bearer", 3600000L))
+            .profileToken(new TokenInfo("profileAccessToken", "profileRefreshToken", "Bearer", 3600000L))
+            .profileResponse(ProfileResponse.from(profile))
+            .build();
 
         when(userService.getUserByEmail(email)).thenReturn(user);
         when(profileRepository.findByIdAndUser(profileId, user)).thenReturn(Optional.of(profile));
-        when(jwtTokenProvider.createToken(email, TokenType.USER_ACCESS, userClaims)).thenReturn("userAccessToken");
-        when(jwtTokenProvider.createToken(email, TokenType.USER_REFRESH, userClaims)).thenReturn("userRefreshToken");
-        when(jwtTokenProvider.createToken(String.valueOf(profileId), TokenType.PROFILE_ACCESS, profileClaims)).thenReturn("profileAccessToken");
-        when(jwtTokenProvider.createToken(String.valueOf(profileId), TokenType.PROFILE_REFRESH, profileClaims)).thenReturn("profileRefreshToken");
-        when(tokenProperties.getValidity()).thenReturn(Map.of(
-            TokenType.USER_ACCESS, 3600000L,
-            TokenType.PROFILE_ACCESS, 3600000L
-        ));
+        when(tokenService.createAuthResponse(user, profile)).thenReturn(expectedResponse);
 
         // when
         AuthResponse response = profileService.selectProfile(email, profileId);
 
         // then
-        assertThat(response.getUserToken().getAccessToken()).isEqualTo("userAccessToken");
-        assertThat(response.getUserToken().getRefreshToken()).isEqualTo("userRefreshToken");
-        assertThat(response.getProfileToken().getAccessToken()).isEqualTo("profileAccessToken");
-        assertThat(response.getProfileToken().getRefreshToken()).isEqualTo("profileRefreshToken");
-        assertThat(response.getProfileResponse().getId()).isEqualTo(profile.getId());
+        assertThat(response).isEqualTo(expectedResponse);
     }
 
     @Test

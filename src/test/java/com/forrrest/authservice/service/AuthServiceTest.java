@@ -17,6 +17,8 @@ import static org.mockito.Mockito.any;
 
 import com.forrrest.authservice.dto.request.LoginRequest;
 import com.forrrest.authservice.dto.response.AuthResponse;
+import com.forrrest.authservice.dto.response.ProfileResponse;
+import com.forrrest.authservice.dto.response.TokenInfo;
 import com.forrrest.authservice.entity.Profile;
 import com.forrrest.authservice.entity.RefreshToken;
 import com.forrrest.authservice.entity.User;
@@ -35,9 +37,7 @@ class AuthServiceTest {
     @Mock
     private ProfileService profileService;
     @Mock
-    private JwtTokenProvider jwtTokenProvider;
-    @Mock
-    private TokenProperties tokenProperties;
+    private TokenService tokenService;
     @Mock
     private PasswordEncoder passwordEncoder;
     @Mock
@@ -50,51 +50,33 @@ class AuthServiceTest {
     void login_WithValidCredentials_ShouldReturnAuthResponse() {
         // given
         LoginRequest request = new LoginRequest("test@test.com", "password");
-        Long profileId = 1L;
         User user = User.builder()
             .email("test@test.com")
             .username("Test username")
             .password("encodedPassword")
             .build();
         Profile defaultProfile = Profile.builder()
-            .id(profileId)
+            .id(1L)
             .user(user)
             .name("Default")
             .isDefault(true)
             .build();
-
-        Map<String, Object> userClaims = Map.of(
-            "username", user.getUsername(),
-            "roles", List.of("USER")
-        );
-
-        Map<String, Object> profileClaims = Map.of(
-            "username", user.getUsername(),
-            "roles", List.of("PROFILE")
-        );
+        AuthResponse expectedResponse = AuthResponse.builder()
+            .userToken(new TokenInfo("userAccessToken", "userRefreshToken", "Bearer", 3600000L))
+            .profileToken(new TokenInfo("profileAccessToken", "profileRefreshToken", "Bearer", 3600000L))
+            .profileResponse(ProfileResponse.from(defaultProfile))
+            .build();
 
         when(userService.getUserByEmail(request.getEmail())).thenReturn(user);
         when(passwordEncoder.matches(request.getPassword(), user.getPassword())).thenReturn(true);
         when(profileService.getDefaultProfile(user)).thenReturn(defaultProfile);
-        when(refreshTokenRepository.save(any(RefreshToken.class))).thenReturn(new RefreshToken());
-        when(jwtTokenProvider.createToken(user.getEmail(), TokenType.USER_ACCESS, userClaims)).thenReturn("userAccessToken");
-        when(jwtTokenProvider.createToken(user.getEmail(), TokenType.USER_REFRESH, userClaims)).thenReturn("userRefreshToken");
-        when(jwtTokenProvider.createToken("1", TokenType.PROFILE_ACCESS, profileClaims)).thenReturn("profileAccessToken");
-        when(jwtTokenProvider.createToken("1", TokenType.PROFILE_REFRESH, profileClaims)).thenReturn("profileRefreshToken");
-        when(tokenProperties.getValidity()).thenReturn(Map.of(
-            TokenType.USER_ACCESS, 3600000L,
-            TokenType.PROFILE_ACCESS, 3600000L
-        ));
+        when(tokenService.createAuthResponse(user, defaultProfile)).thenReturn(expectedResponse);
 
         // when
         AuthResponse response = authService.login(request);
 
         // then
-        assertThat(response.getUserToken().getAccessToken()).isEqualTo("userAccessToken");
-        assertThat(response.getUserToken().getRefreshToken()).isEqualTo("userRefreshToken");
-        assertThat(response.getProfileToken().getAccessToken()).isEqualTo("profileAccessToken");
-        assertThat(response.getProfileToken().getRefreshToken()).isEqualTo("profileRefreshToken");
-        assertThat(response.getProfileResponse().getId()).isEqualTo(defaultProfile.getId());
+        assertThat(response).isEqualTo(expectedResponse);
     }
 
     @Test
