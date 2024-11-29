@@ -20,4 +20,4 @@ logging:
     com.forrrest: debug
 
 server:
-  port: ${AUTH_PORT:8080}
+  port: ${AUTH_PORT:8081}
