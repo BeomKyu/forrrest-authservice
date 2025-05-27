@@ -6,7 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.forrrest.authservice.dto.request.LoginRequest;
 import com.forrrest.authservice.dto.request.SignupRequest;
-import com.forrrest.authservice.dto.request.TokenRequest;
+import com.forrrest.authservice.dto.request.RefreshTokenRequest;
 import com.forrrest.authservice.dto.response.AuthResponse;
 import com.forrrest.authservice.dto.response.UserResponse;
 import com.forrrest.authservice.entity.Profile;
@@ -53,7 +53,7 @@ public class AuthService {
     }
 
     @Transactional
-    public AuthResponse refreshToken(TokenRequest request, Long profileId) {
+    public AuthResponse refreshToken(RefreshTokenRequest request, Long profileId) {
         if (!tokenService.validateToken(request.getRefreshToken())) {
             throw new CustomException(ErrorCode.INVALID_TOKEN);
         }
