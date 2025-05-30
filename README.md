@@ -1,74 +1,56 @@
-# Forrrest 프로젝트 개요
-## 1. 아키텍처
-### 마이크로서비스 아키텍처 기반
-- 공통 모듈(common)과 인증 서비스(auth-service) 구조
+# Forrrest AuthService 기획서
 
-## 2. Common Module
-### 2.1 보안 컴포넌트
+## 1. 모듈 개요
 
-#### *Security Features*
-참조:
-- Token-based Authentication
-- JWT(JSON Web Token) 기반의 인증 시스템을 구현하며, 다음과 같은 토큰 타입을 지원합니다:
+* **모듈명**: forrrest-authservice
+* **역할**: 사용자 인증·인가 및 프로필 관리
+* **배포**: 독립 실행형 마이크로서비스
 
-```
-  public enum TokenType {
-    USER_ACCESS,    // 일반 사용자 접근 토큰
-    USER_REFRESH,   // 일반 사용자 갱신 토큰
-    PROFILE_ACCESS, // 프로필 접근 토큰
-    PROFILE_REFRESH,// 프로필 갱신 토큰
-    NONCE          // 일회성 토큰
+## 2. 현재 구현된 기능
 
-}
-```
-### 2.2 핵심 컴포넌트
-- TokenProvider: 토큰 생성 및 검증 인터페이스
-- TokenAuthentication: Spring Security Authentication 구현체
-- UserTokenAuthentication
-- ProfileTokenAuthentication
-- NonceTokenAuthentication
-- AbstractTokenFilter: 토큰 타입별 필터 구현
+1. **회원가입 (Sign Up)**: `POST /auth/signup`
+2. **로그인 (Login)**: `POST /auth/login` (Access Token + Refresh Token 발급)
+3. **토큰 갱신 (Refresh)**: `POST /auth/refresh`
+4. **프로필 CRUD**: `GET /auth/profile`, `PUT /auth/profile`, `DELETE /auth/profile`
+5. **다중 프로필 지원**: 프로필 생성 및 전환 기능
+6. **JWT 인증 필터**: Spring Security 기반 필터 적용
+7. **리프레시 토큰 쿠키 정책**: Secure, HttpOnly, SameSite 쿠키 설정
+8. **로그아웃**: Refresh 토큰 무효화 및 쿠키 삭제
 
-## Auth Service
-### 3.1 주요 엔티티
-1. User: 사용자 정보 관리
-  - email (unique)
-  - password
-  - username
-2. profiles (OneToMany)
-  - Profile: 사용자 프로필 관리
-  - name
-  - isDefault
-  - user (ManyToOne)
-3. RefreshToken: 토큰 갱신 관리
-  - email (PK)
-  - refreshToken
-  - expiryDate
-### 3.2 인증 흐름
-1. 로그인/회원가입
-2. 사용자 인증 후 User Access/Refresh 토큰 발급
-3. 기본 프로필에 대한 Profile Access/Refresh 토큰 발급
-4. 프로필 전환
-5. 선택한 프로필에 대한 새로운 Profile 토큰 발급
-6. 기존 User 토큰 유지
-7. 토큰 갱신
-8. Refresh 토큰을 통한 Access 토큰 재발급
+## 3. 향후 구현 예정 기능
 
-## 4. 테스트 전략
-### 4.1 단위 테스트
-- Service Layer
-- AuthService: 로그인, 토큰 갱신 검증
-- ProfileService: 프로필 선택, 관리 검증
-### 4.2 보안 테스트
-- TokenFilter
-- 유효한/유효하지 않은 토큰 검증
-- 토큰 타입별 접근 제어 검증
-## 5. 예외 처리
-- CustomException을 통한 비즈니스 예외 처리
-- ErrorCode를 통한 일관된 에러 응답 관리
-- TokenExceptionHandler를 통한 보안 예외 처리
-## 6. API 보안
-- Bearer 토큰 기반 인증
-- 경로별 토큰 타입 검증
-- JWT를 통한 안전한 사용자/프로필 정보 전달
-- 이 구조를 통해 멀티 프로필을 지원하는 안전하고 확장 가능한 인증 시스템을 구현했습니다.
+|  번호 | 기능                  | 설명                               |
+| :-: | ------------------- | -------------------------------- |
+|  1  | 비밀번호 재설정 & 이메일 인증   | 비밀번호 초기화용 링크 전송 및 확인 이메일         |
+|  2  | 소셜 로그인              | Google, GitHub 등 OAuth2 연동       |
+|  3  | 2단계 인증 (TOTP)       | Time-based One-Time Password 지원  |
+|  4  | 토큰 블랙리스트 관리 (Redis) | 무효화된 토큰 관리용 블랙리스트 저장소            |
+|  5  | 서명 키 로테이션           | 다중 `kid` 지원 및 Grace Period 관리    |
+|  6  | 접속/인증 로깅 및 모니터링     | 로그인 이벤트 및 API 호출 기록 수집           |
+
+## 4. 서비스 설명
+
+forrrest-authservice는 JWT 기반의 인증·인가 엔진을 제공하며, 회원가입부터 로그인, 토큰 관리, 프로필 CRUD까지 인증 전 과정을 안정적으로 처리합니다.
+
+## 5. 목표
+
+* **보안 강화**: 최신 JWT 표준을 적용해 위변조 및 재사용 공격 방지
+* **확장성 확보**: 다중 프로필, 소셜 로그인, 토큰 회전 등 기능 확장 용이
+* **사용자 경험 개선**: 간편한 로그인 프로세스와 빠른 응답
+
+## 6. 핵심 기능 및 우선순위
+
+| 우선순위 | 기능                | 설명                                 |
+| :--: | ----------------- | ---------------------------------- |
+|   1  | 회원가입/로그인          | 이메일 가입 및 JWT 토큰 발급                 |
+|   2  | 토큰 갱신/로그아웃        | Refresh 토큰 검증·무효화, 쿠키 관리           |
+|   3  | 프로필 CRUD          | 사용자 프로필 조회·수정·삭제                   |
+|   4  | 비밀번호 재설정 & 이메일 인증 | 보안 강화용 비밀번호 초기화 및 이메일 확인           |
+|   5  | 소셜 로그인            | 외부 OAuth2 제공자(Google, GitHub 등) 연동 |
+|   6  | 2단계 인증 (TOTP)     | 추가 보안을 위한 일회용 비밀번호 지원              |
+|   7  | 토큰 블랙리스트 관리       | 서버측 토큰 무효화 관리(Redis)               |
+|   8  | 키 로테이션            | 주기적 키 교체 및 이전 키 유지 관리              |
+|   9  | 로깅 및 모니터링         | 인증 이벤트 로깅 및 시스템 상태 모니터링            |
+
+---
+
